@@ -6,14 +6,14 @@ Chi tiết mô hình kiến trúc hạ tầng AWS được minh họa cụ thể
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=0.8\textwidth]{graphics/chapter-5/cloud.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-5/cloud.png}
     \caption{Kiến trúc triển khai cơ sở hạ tầng trên nền tảng AWS}
     \label{fig:aws-infra-architecture}
 \end{figure}
 
 Kiến trúc hạ tầng bao gồm ba lớp chức năng chính:
 \begin{itemize}
-    \item \textbf{Lớp mạng (Networking Layer):} VPC dải mạng \texttt{10.0.0.0/16} được chia làm các Public/Private Subnet trên 03 AZs (us-east-1a, us-east-1b, us-east-1c). Lớp này sử dụng Internet Gateway (IGW) cho kết nối ngoài, NAT Gateway bảo mật cho phân vùng nội bộ, và Application Load Balancer (ALB) điều phối lưu lượng.
+    \item \textbf{Lớp mạng (Networking Layer):} VPC dải mạng \texttt{10.0.0.0/16} được chia làm các Public/Private Subnet trên 03 AZs (us-east-1a, us-east-1b, us-east-1c). Lớp này sử dụng Internet Gateway (IGW) cho kết nối ngoài, NAT Gateway bảo mật cho phân vùng nội bộ, và Application Load Balancer (ALB) điều phối lưu lượng từ người dùng.
     \item \textbf{Lớp tính toán (Compute Layer):} Cụm Kubernetes được phân bổ trên cả 03 AZs để vận hành workloads. Trong đó, Master node đặt tại Private Subnet của AZ 1, các Worker node được phân tán ở các AZs khác nhau. Ngoài ra, hệ thống được bổ sung thêm Auto Scaling Group giúp hỗ trợ tăng giảm số máy Worker phục vụ lượng tải linh hoạt từ người dùng.
     \item \textbf{Lớp giám sát và quản trị (Management Layer):} Tích hợp Prometheus để thu thập dữ liệu huấn luyện (metrics) thời gian thực và Grafana để trực quan hóa phục vụ phân tích. Hệ thống quản trị được bảo mật thông qua OpenVPN Server đặt tại Public Subnet của AZ 3.
 \end{itemize}
@@ -71,6 +71,131 @@ Quy trình thiết lập cụm Kubernetes được tự động hóa hoàn toàn
 
 Hệ thống giám sát được cấu hình tập trung trên máy chủ chuyên dụng đặt tại Private Subnet của AZ 1 nhằm đảm bảo tính toàn vẹn dữ liệu:
 \begin{itemize}
-    \item \textbf{Prometheus:} Được cấu hình thông qua Ansible để tự động phát hiện dịch vụ (\textit{service discovery}) trong cụm Kubernetes, thu thập dữ liệu metrics từ \texttt{node-exporter} (được Ansible cài đặt trên từng node) và \texttt{kube-state-metrics} theo chu kỳ 15 giây.
+    \item \textbf{Prometheus:} Được cấu hình thông qua Ansible để tự động phát hiện dịch vụ (\textit{service discovery}) trong cụm Kubernetes, thu thập dữ liệu metrics từ \texttt{node-exporter} (được Ansible cài đặt trên từng node) và \texttt{kube-state-metrics} theo chu kỳ 5 giây.
     \item \textbf{Grafana:} Được cấu hình sẵn các nguồn dữ liệu (\textit{Data Sources}) kết nối trực tiếp tới Prometheus và tự động nạp các bảng giao diện trực quan hóa (\textit{Dashboards}) để theo dõi hiệu năng tài nguyên hệ thống (CPU, RAM, Network) theo thời gian thực.
 \end{itemize}
+
+\section{Mô phỏng hoạt động thực tế của hệ thống}
+
+\subsection{Mô phỏng lượng người dùng sử dụng K6}
+
+Trong thực nghiệm, nhóm sử dụng K6 để mô phỏng tải người dùng lên hệ thống \textit{mini-ecommerce} thông qua kịch bản \texttt{scripts-k6/user-journey.js}. Kịch bản bám theo luồng truy cập thực tế: đăng nhập, duyệt danh mục sản phẩm, xem chi tiết sản phẩm và truy vấn đơn hàng. Cách mô phỏng này giúp dữ liệu tải phản ánh sát hành vi nghiệp vụ thay vì chỉ gửi request tổng hợp.
+
+Quá trình chạy được điều phối bởi script \texttt{scripts/run-user-journey.sh}. Script này tự động nạp cấu hình từ tệp môi trường, seed dữ liệu khách hàng/sản phẩm trước khi chạy (nếu bật), thực thi K6, sau đó dọn dẹp dữ liệu seed để tránh ảnh hưởng lần thử nghiệm kế tiếp. Nhờ đó, các lượt chạy có tính lặp lại cao và thuận tiện so sánh giữa nhiều kịch bản chaos.
+
+Sau khi K6 kết thúc, hệ thống xuất dữ liệu thô và dữ liệu tổng hợp theo các mốc thời gian:
+\begin{itemize}
+    \item \texttt{k6-summary.json}
+    \item \texttt{k6-raw.jsonl}
+    \item \texttt{combined-report.json}
+    \item \texttt{combined-report.csv}
+    \item \texttt{combined-report.parquet}
+\end{itemize}
+\noindent Đặc biệt, bước \texttt{export-combined-report.py} sẽ hợp nhất chỉ số K6 với dữ liệu Prometheus theo bucket 5 giây, tạo thành tập dữ liệu đầu vào trực tiếp cho phân tích hiệu năng và huấn luyện tác nhân RL.
+
+\begin{center}
+\captionof{table}{Một số thông số chính trong cấu hình K6 (\texttt{.env.k6.fast})}
+\label{tab:k6-fast-profile-config}
+\footnotesize
+\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{|L{4.0cm}|C{3.0cm}|L{7.6cm}|}
+\hline
+\textbf{Tham số} & \textbf{Giá trị} & \textbf{Ý nghĩa} \\ \hline
+\texttt{BASE\_URL} & \texttt{ALB DNS của hệ thống staging} & Địa chỉ endpoint mục tiêu để phát sinh tải thử nghiệm. \\ \hline
+\makecell[l]{\texttt{LOGIN\_ENDPOINT}\\\texttt{PRODUCTS\_ENDPOINT}\\\texttt{ORDERS\_ENDPOINT}} & \texttt{/api/v1/...} & Các API chính trong luồng mô phỏng người dùng. \\ \hline
+\texttt{VU\_START} & \texttt{100} & Số lượng người dùng ảo ban đầu. \\ \hline
+\texttt{VU\_MAX} & \texttt{250} & Mức người dùng ảo cực đại trong profile tải nhanh. \\ \hline
+\texttt{VU\_STEP} & \texttt{15} & Bước tăng người dùng ảo theo mỗi chu kỳ tải. \\ \hline
+\texttt{VU\_TIME\_UNIT} & \texttt{10s} & Đơn vị thời gian cho mỗi bước tăng tải. \\ \hline
+\makecell[l]{\texttt{VU\_RAMP\_DOWN}\\\texttt{\_DURATION}} & \texttt{10s} & Thời gian giảm tải có kiểm soát trước khi kết thúc lượt chạy. \\ \hline
+\texttt{CUSTOMER\_COUNT} & \texttt{5} & Số lượng tài khoản khách hàng được sinh sẵn cho mỗi lần test. \\ \hline
+\texttt{THINK\_TIME\_MIN/MAX} & \texttt{0.5 / 2.0} & Khoảng thời gian chờ mô phỏng hành vi người dùng giữa các thao tác. \\ \hline
+\texttt{REQUEST\_TIMEOUT} & \texttt{30s} & Ngưỡng timeout cho mỗi HTTP request trong kịch bản K6. \\ \hline
+\texttt{PROMETHEUS\_URL} & \texttt{10.0.21.10} & IP của Prometheus Server dùng để thu thập metrics cho đánh giá/huấn luyện RL. \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection{Mô phỏng sự cố trong quá trình sử dụng}
+
+Để đánh giá khả năng tự phục hồi trong điều kiện vận hành thực, nhóm sử dụng Chaos Mesh để tiêm lỗi trong lúc hệ thống đang phục vụ tải từ K6. Quá trình này được điều phối bởi script \texttt{chaos-mesh/scripts/run-chaos.sh}, cho phép chuẩn hóa cùng một quy trình giữa các lần chạy và giữa các loại sự cố khác nhau.
+
+Mỗi lượt thí nghiệm được tổ chức theo 4 pha thời gian:
+\begin{itemize}
+    \item \textbf{Baseline}: hệ thống chạy ổn định dưới tải.
+    \item \textbf{Warm-up}: tăng độ ổn định của tín hiệu trước khi kích hoạt lỗi.
+    \item \textbf{Chaos-active}: lỗi được tiêm trực tiếp bằng manifest Chaos Mesh.
+    \item \textbf{Recovery}: ngừng tiêm lỗi và quan sát hệ thống phục hồi.
+\end{itemize}
+\noindent Theo cấu hình hiện tại trong \texttt{.env.chaos}, thời lượng tương ứng là \texttt{20s / 20s / 30s / 20s}. Script đồng thời ghi \texttt{chaos-timeline.json} để đồng bộ mốc sự kiện chaos với dữ liệu metrics ở bước hậu xử lý.
+
+Trong phạm vi đồ án, các kịch bản chính phục vụ đánh giá RL được cấu hình như Bảng \ref{tab:chaos-scenarios-main}.
+
+\begin{center}
+\captionof{table}{Các kịch bản mô phỏng sự cố chính bằng Chaos Mesh}
+\label{tab:chaos-scenarios-main}
+\footnotesize
+\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{|L{4.3cm}|L{2.7cm}|L{3.2cm}|L{4.4cm}|}
+\hline
+\textbf{Kịch bản} & \textbf{Loại lỗi} & \textbf{Thành phần mục tiêu} & \textbf{Thiết lập chính} \\ \hline
+\texttt{pod-kill-product} & PodChaos & \texttt{product-service} & \texttt{action=pod-kill}, \texttt{mode=one}, \texttt{duration=30s}. \\ \hline
+\texttt{network-delay-api-gateway} & NetworkChaos & \texttt{api-gateway -> product-service} & \texttt{latency=400ms}, \texttt{jitter=0ms}, \texttt{correlation=100}, \texttt{duration=90s}. \\ \hline
+\end{tabular}
+\end{center}
+
+Ngoài chạy đơn lẻ, hệ thống hỗ trợ chạy lặp nhiều lượt bằng \texttt{run-chaos-batch.sh} để thu đủ số episode cho huấn luyện và so sánh. Kết quả mỗi lượt được lưu theo thư mục artifact riêng, giúp truy vết đầy đủ giữa cấu hình sự cố, dữ liệu tải và dữ liệu metrics.
+
+\subsection{Kết quả kiểm thử hệ thống}
+
+Hình \ref{fig:benchmark-no-rl-timeseries} minh họa một lượt benchmark với các pha \textit{baseline}, \textit{warm-up}, \textit{chaos-active} và \textit{recovery} khi hệ thống chưa áp dụng tác nhân RL để ra quyết định phục hồi.
+
+\begin{center}
+    \includegraphics[height=0.5\textheight,keepaspectratio]{graphics/chapter-5/benchmark-norl.png}
+    \captionof{figure}{Chuỗi chỉ số phía client và trạng thái workload trong benchmark chưa áp dụng RL}
+    \label{fig:benchmark-no-rl-timeseries}
+\end{center}
+
+\noindent Từ Hình \ref{fig:benchmark-no-rl-timeseries} có thể quan sát:
+\begin{itemize}
+    \item Trong pha \textit{chaos-active}, độ trễ p95/p99 xuất hiện các đỉnh tăng mạnh.
+    \item \texttt{failed\_rate} tăng ngắn hạn đồng thời với tín hiệu \texttt{fault\_active}.
+    \item Số lượng pod \textit{running} có dao động tại thời điểm sự cố trước khi quay về trạng thái ổn định.
+\end{itemize}
+\noindent Đây là đường cơ sở quan trọng để so sánh mức cải thiện khi áp dụng chính sách tự phục hồi dựa trên RL ở các chương sau.
+
+\begin{center}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-5/metrics.png}
+    \captionof{figure}{Trích xuất dữ liệu \texttt{combined-report.csv} sau một lượt chạy benchmark}
+    \label{fig:combined-report-csv-snapshot}
+\end{center}
+
+\noindent Hình \ref{fig:combined-report-csv-snapshot} cho thấy cấu trúc dữ liệu đầu ra đã được đồng bộ theo bucket 5 giây. Các nhóm trường chính gồm:
+\begin{itemize}
+    \item Trường thời gian: \texttt{timestamp}, \texttt{bucket\_start\_epoch}.
+    \item Trường pha thí nghiệm: \texttt{phase}, \texttt{fault\_active}.
+    \item Nhóm chỉ số tải và lỗi:
+    \begin{itemize}
+        \item \texttt{http\_rps}, \texttt{http\_req\_count}, \texttt{http\_req\_failed\_rate}.
+    \end{itemize}
+    \item Nhóm chỉ số độ trễ: \texttt{http\_req\_duration\_avg\_ms}, p95, p99.
+\end{itemize}
+\noindent Cấu trúc này giúp theo dõi biến động hệ thống theo từng pha \textit{baseline}, \textit{chaos-active}, \textit{recovery} và là đầu vào trực tiếp cho bước huấn luyện RL.
+
+\section{Thiết lập huấn luyện RL}
+
+Dữ liệu huấn luyện được lấy từ các tệp \texttt{combined-report.csv} sinh ra sau mỗi lượt chạy benchmark có tải và có tiêm lỗi. Mỗi mẫu dữ liệu đã được đồng bộ theo bucket 5 giây, giữ đầy đủ ngữ cảnh pha thí nghiệm (\textit{baseline}, \textit{warm-up}, \textit{chaos-active}, \textit{recovery}) cùng các chỉ số tải, lỗi và độ trễ.
+
+Trong phạm vi đồ án, quá trình huấn luyện tập trung vào hai kịch bản chính:
+\begin{itemize}
+    \item \textbf{Pod Failure}: sử dụng dữ liệu từ kịch bản \texttt{chaos-pod-kill-product}.
+    \item \textbf{Network Delay}: sử dụng dữ liệu từ kịch bản \texttt{chaos-network-delay-api-gateway}.
+\end{itemize}
+
+Pipeline huấn luyện được tổ chức theo quy trình nhất quán:
+\begin{itemize}
+    \item Tiền xử lý dữ liệu và ánh xạ về không gian trạng thái theo MDP đã định nghĩa ở Chương 3.
+    \item Huấn luyện tác nhân theo từng thuật toán (DQN/PPO) trên từng kịch bản lỗi riêng biệt.
+    \item Đánh giá định kỳ theo các chỉ số phục hồi dịch vụ (MTTR, error rate, p95/p99) và chọn checkpoint tốt nhất.
+\end{itemize}
+
+Về triển khai, nhóm sử dụng các script huấn luyện trong mô-đun simulator để bảo đảm khả năng tái lập thí nghiệm. Kết quả mỗi lượt huấn luyện được lưu theo từng run (mô hình, metadata và log), làm đầu vào cho phần so sánh kết quả ở Chương 6.
