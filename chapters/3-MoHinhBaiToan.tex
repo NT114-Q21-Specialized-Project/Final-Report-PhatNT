@@ -15,10 +15,10 @@
     \item $\gamma$: hệ số chiết khấu.
 \end{itemize}
 
-\noindent Phạm vi hiện tại gồm hai kịch bản lỗi độc lập, do đó sử dụng hai MDP tách biệt:
+\noindent Phạm vi hiện tại tập trung vào kịch bản lỗi được mô hình hóa bằng MDP:
 \begin{itemize}
     \item \textbf{MDP\_PPO\_POD\_KILL}: cho kịch bản \texttt{chaos-pod-kill-product}.
-    \item \textbf{MDP\_PPO\_NETWORK\_DELAY}: cho kịch bản \texttt{chaos-network-delay-api-gateway}.
+    %\item \textbf{MDP\_PPO\_NETWORK\_DELAY}: cho kịch bản \texttt{chaos-network-delay-api-gateway}.
 \end{itemize}
 
 \subsection{Kịch bản Pod Failure}
@@ -77,9 +77,12 @@
 \noindent\textbf{Hàm thưởng.}
 
 \noindent Hàm thưởng cho \texttt{MDP\_PPO\_POD\_KILL} được thiết kế như sau:
+\begingroup
+\small
 \[
 R_t = 6.0 \cdot health\_gain - 3.0 \cdot err\_{5xx} - 2.0 \cdot p99\_norm - 1.2 \cdot tail\_stress - action\_cost - 0.05
 \]
+\endgroup
 \noindent trong đó:
 \[
 health\_gain = health_t - health_{t-1}
@@ -155,29 +158,29 @@ health = 0.45(1-err\_{5xx}) + 0.35(1-p99\_norm) + 0.20 \cdot http\_rps\_norm
     \item \textbf{Nội sinh}: do hành động của tác nhân tác động lên $err/p99/rps$, sau đó blend về quỹ đạo artifact để tránh overfit.
 \end{itemize}
 
-\subsection{Kịch bản độ trễ mạng tăng cao}
+%\subsection{Kịch bản độ trễ mạng tăng cao}
+%
+%\noindent Kịch bản độ trễ mạng tăng cao được mô hình hóa bằng \textbf{MDP\_PPO\_NETWORK\_DELAY}. Cấu trúc MDP giữ nguyên, nhưng điều chỉnh ưu tiên:
+%\begin{itemize}
+%    \item tăng trọng số phạt cho $p95/p99$ latency,
+%    \item giảm tác dụng kỳ vọng của \texttt{restart\_pod},
+%    \item tăng tác dụng kỳ vọng của \texttt{scale\_up} khi suy giảm mạng gây nghẽn.
+%\end{itemize}
 
-\noindent Kịch bản độ trễ mạng tăng cao được mô hình hóa bằng \textbf{MDP\_PPO\_NETWORK\_DELAY}. Cấu trúc MDP giữ nguyên, nhưng điều chỉnh ưu tiên:
-\begin{itemize}
-    \item tăng trọng số phạt cho $p95/p99$ latency,
-    \item giảm tác dụng kỳ vọng của \texttt{restart\_pod},
-    \item tăng tác dụng kỳ vọng của \texttt{scale\_up} khi suy giảm mạng gây nghẽn.
-\end{itemize}
-
-\noindent\textbf{Liên kết với hiện thực mã nguồn.}
-
-\noindent Thiết kế MDP trên được ánh xạ vào mã nguồn:
-\begin{itemize}
-    \item Train PPO mô phỏng: \texttt{src/ppo/train.py}
-    \item Train PPO từ artifact: \texttt{src/ppo/train\_artifacts.py}
-    \item Môi trường theo kịch bản:
-    \begin{itemize}
-        \item \texttt{src/ppo/policies/pod\_failure/env.py}
-        \item \texttt{src/ppo/policies/network\_delay/env.py}
-    \end{itemize}
-    \item Suy luận thời gian chạy:
-    \begin{itemize}
-        \item \texttt{src/ppo/infer.py}
-        \item \texttt{src/common/runtime/k8s\_runtime.py}
-    \end{itemize}
-\end{itemize}
+% \noindent\textbf{Liên kết với hiện thực mã nguồn.}
+% 
+% \noindent Thiết kế MDP trên được ánh xạ vào mã nguồn:
+% \begin{itemize}
+%     \item Train PPO mô phỏng: \texttt{src/ppo/train.py}
+%     \item Train PPO từ artifact: \texttt{src/ppo/train\_artifacts.py}
+%     \item Môi trường theo kịch bản:
+%     \begin{itemize}
+%         \item \texttt{src/ppo/policies/pod\_failure/env.py}
+%         %\item \texttt{src/ppo/policies/network\_delay/env.py}
+%     \end{itemize}
+%     \item Suy luận thời gian chạy:
+%     \begin{itemize}
+%         \item \texttt{src/ppo/infer.py}
+%         \item \texttt{src/common/runtime/k8s\_runtime.py}
+%     \end{itemize}
+% \end{itemize}

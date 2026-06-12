@@ -1,20 +1,28 @@
-Trong chương này, chúng tôi sẽ trình bày những gì mà khóa luận đã đạt được so với mục tiêu được đặt ra từ ban đầu khi bắt đầu thực hiện. Bên cạnh đó, chúng tôi cũng trình bày những hạn chế và đưa ra hướng phát triển kế tiếp của chúng tôi trong tương lai. \textit{(Viết lại câu để tránh bị đạo văn)}
+Chương này tổng kết các kết quả chính của đồ án, đồng thời nêu ra những hạn chế hiện tại và một số hướng phát triển tiếp theo.
 
 \section{Kết luận}
-Sau khi thực hiện khóa luận tốt nghiệp với đề tài ``TÊN ĐỀ TÀI'', chúng tôi đạt được một số kết quả sau:
-\begin{itemize}
-    \item Ý 1
-    \item Ý 2
-    \item Ý 3
-\end{itemize}
+\noindent Trong phạm vi đồ án, nhóm đã xây dựng được một quy trình tương đối hoàn chỉnh cho bài toán self-healing trên Kubernetes, từ hạ tầng thực nghiệm, lớp ứng dụng microservices, hệ thống giám sát, cơ chế gây lỗi cho đến mô hình học tăng cường.
+
+\noindent Về mặt mô hình, nhóm đã biểu diễn bài toán dưới dạng MDP với trạng thái phản ánh tải, lỗi, độ trễ và ngữ cảnh pha thí nghiệm; tập hành động rời rạc gồm \texttt{idle}, \texttt{restart\_pod}, \texttt{scale\_up} và \texttt{scale\_down}; cùng hàm thưởng ưu tiên phục hồi nhanh và hạn chế vi phạm SLA.
+
+\noindent Trên cơ sở đó, nhóm đã huấn luyện ba thuật toán DQN, A2C và PPO cho kịch bản \textit{pod failure}. Kết quả ở Chương 6 cho thấy cả ba mô hình đều tốt hơn baseline, trong đó PPO đạt kết quả nổi bật nhất về tỷ lệ thành công, phần thưởng trung bình và độ ổn định trên tập đánh giá offline.
 
 \section{Hạn chế}
-Trong quá trình thực hiện khóa luận này cũng tôi đã gặp khó khăn trong việc ...
+\begin{itemize}
+    \item Phạm vi lỗi hiện tại chủ yếu tập trung vào kịch bản \textit{pod failure}, chưa bao phủ đầy đủ các lỗi như \textit{network delay}, \textit{node failure} hay nghẽn tài nguyên.
+    \item Dữ liệu huấn luyện thực tế còn hạn chế về số lượng và độ đa dạng, nên mô hình chưa phản ánh hết các trạng thái bất thường có thể xuất hiện trong môi trường production.
+    \item Quá trình huấn luyện hiện vẫn chủ yếu ở dạng offline từ artifact đã thu thập, chưa phải cơ chế học trực tiếp và liên tục trên hệ thống đang chạy.
+    \item Không gian hành động còn nhỏ, nên trong một số quỹ đạo lỗi tác nhân vẫn có thể can thiệp chưa thật sự mượt hoặc lặp lại quyết định scale.
+    \item Hàm thưởng hiện được thiết kế theo heuristic, phù hợp cho giai đoạn đầu nhưng chưa chắc là cấu hình tối ưu cho mọi loại dịch vụ.
+\end{itemize}
 
 \section{Hướng phát triển}
-Trong tương lai chúng tôi có một số dự định được đề ra như sau:
 \begin{itemize}
-    \item Ý 1
-    \item Ý 2
-    \item Ý 3
+    \item Mở rộng tập dữ liệu và kịch bản lỗi, đặc biệt với lỗi mạng, lỗi nút và các tình huống nhiều sự cố liên tiếp.
+    \item Hoàn thiện guardrail an toàn để giảm hiện tượng can thiệp lặp, scale quá mức hoặc phản ứng chưa đúng ngữ cảnh.
+    \item Cải tiến hàm thưởng theo hướng tinh chỉnh siêu tham số hoặc tối ưu tự động dựa trên mục tiêu vận hành.
+    \item Chuyển dần sang shadow mode hoặc suy luận thời gian thực để đánh giá khả năng áp dụng của tác nhân trên cụm thật.
+    \item So sánh sâu hơn giữa các thuật toán nhằm xác định mô hình phù hợp nhất cho từng loại lỗi và từng quy mô hệ thống.
 \end{itemize}
+
+\noindent Tóm lại, đồ án đã xây dựng được nền tảng thực nghiệm có tính hệ thống cho bài toán tự phục hồi Kubernetes bằng học tăng cường. Dù còn khoảng cách giữa mô hình nghiên cứu và tác nhân vận hành hoàn chỉnh, kết quả hiện tại cho thấy hướng tiếp cận RL là khả thi và có tiềm năng phát triển tiếp trong các nghiên cứu sau.

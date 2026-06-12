@@ -1,14 +1,6 @@
 \chapter*{Tóm tắt}
 %\markboth{TÓM TẮT}
-Đề tài “Cải thiện khả năng tự phục hồi cho hệ thống Kubernetes sử dụng học tăng cường” tập trung nghiên cứu và xây dựng mô hình ứng dụng Reinforcement Learning nhằm tối ưu quá trình phát hiện và xử lý sự cố trong Kubernetes cluster.
 
-Trong mô hình đề xuất, tác nhân học tăng cường (RL Agent) sẽ liên tục quan sát trạng thái hệ thống như mức sử dụng CPU, RAM, trạng thái pod, node và các chỉ số hiệu năng khác để đưa ra hành động phù hợp như restart pod, migrate workload hoặc phân phối lại tài nguyên. Sau mỗi hành động, hệ thống sẽ phản hồi thông qua reward nhằm giúp agent học được chiến lược phục hồi tối ưu theo thời gian.
+Đồ án môn học này tập trung vào việc nghiên cứu và cải thiện khả năng tự phục hồi (self-healing) cho hệ thống Kubernetes sử dụng Học tăng cường (Reinforcement Learning - RL), nhằm thay thế cho các giải pháp cấu hình tĩnh truyền thống. Chúng em mô hình hóa bài toán tự phục hồi dưới dạng tiến trình quyết định Markov (MDP) với không gian trạng thái từ các chỉ số đo lường hệ thống (metrics), không gian hành động can thiệp (khởi động lại pod, co giãn tài nguyên) và hàm thưởng cân bằng giữa tài nguyên và chất lượng dịch vụ (SLA). 
 
-Đề tài hướng đến mục tiêu:
-\begin{itemize}
-    \item Giảm thời gian gián đoạn dịch vụ khi xảy ra lỗi.
-    \item Nâng cao khả năng tự động thích nghi của hệ thống.
-    \item Tối ưu hiệu quả sử dụng tài nguyên trong cluster.
-    \item Cải thiện tính ổn định và độ sẵn sàng của ứng dụng.
-\end{itemize}
-Thông qua việc tích hợp Reinforcement Learning vào cơ chế self-healing của Kubernetes, hệ thống có thể phản ứng linh hoạt hơn trước các sự cố phức tạp thay vì chỉ phụ thuộc vào các luật xử lý cố định truyền thống.
+Ba thuật toán học tăng cường tiêu biểu gồm DQN, A2C và PPO được cài đặt và huấn luyện trên môi trường giả lập. Kết quả đánh giá cho thấy tác nhân PPO đạt tính hội tụ ổn định và tỷ lệ tự phục hồi thành công cao nhất so với các thuật toán còn lại và phương pháp baseline. Khi triển khai thử nghiệm trên cụm Kubernetes thực tế chạy nền tảng AWS, mô hình đề xuất đã giúp cải thiện đáng kể các chỉ số chất lượng dịch vụ (SLA) như thời gian phản hồi và tỷ lệ lỗi, trong khi mức tiêu thụ tài nguyên của cụm vẫn được duy trì ở mức tối ưu.

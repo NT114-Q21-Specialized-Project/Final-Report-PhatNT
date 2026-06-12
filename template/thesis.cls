@@ -3,8 +3,17 @@
 \LoadClass[12pt]{report}
 
 % Core packages
-\RequirePackage[utf8]{inputenc}
-\RequirePackage[T1,T5]{fontenc}
+\RequirePackage{iftex}
+\ifXeTeX
+  \RequirePackage{fontspec}
+  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+  \setmainfont{TeX Gyre Termes}
+  \setsansfont{TeX Gyre Heros}
+  \setmonofont{Liberation Mono}
+\else
+  \RequirePackage[utf8]{inputenc}
+  \RequirePackage[T1,T5]{fontenc}
+\fi
 \RequirePackage{anyfontsize}
 % \RequirePackage[vietnamese,english]{babel}
 % \RequirePackage{csquotes}
@@ -56,7 +65,11 @@
 \RequirePackage{multido}
 \RequirePackage{etoolbox}
 
-\RequirePackage{times,latexsym,bbm,rotating}
+\ifXeTeX
+  \RequirePackage{latexsym,bbm,rotating}
+\else
+  \RequirePackage{times,latexsym,bbm,rotating}
+\fi
 \RequirePackage{enumitem,hhline,stmaryrd,bussproofs,arydshln}
 \usetikzlibrary{calc}
 \RequirePackage{lipsum}
@@ -68,7 +81,7 @@
 
 \RequirePackage{array,booktabs,arydshln,xcolor}
 \newcommand\VRule[1][\arrayrulewidth]{\vrule width #1}
-\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{L}[1]{>{\hspace{2pt}\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
@@ -102,8 +115,10 @@
 
 \geometry{
 	a4paper,
-	left=1.38in,
-	right=0.79in,
+    % left=1.38in,
+	% right=0.79in,
+	left=1.0in,
+	right=0.4in,
 	top=1.18in,
 	bottom=1.38in
 }
@@ -315,9 +330,9 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
     \pagestyle{customfancy}
 
     \newpage
-    \phantomsection
-    \addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ khóa luận}
-    \input{chapters/council}
+    %\phantomsection
+    %\addcontentsline{toc}{chapter}{Thông tin hội đồng bảo vệ khóa luận}
+    %\input{chapters/council}
 
     \newpage
     \phantomsection
