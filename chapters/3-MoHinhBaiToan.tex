@@ -1,10 +1,21 @@
+Chương này trình bày mô hình bài toán tự phục hồi ứng dụng trên 
+nền tảng Kubernetes bằng Reinforcement Learning. Trước tiên, bài 
+toán được phân tích trong bối cảnh hệ thống microservices, làm rõ mục 
+tiêu tự động lựa chọn hành động phục hồi nhằm nâng cao tính sẵn sàng 
+của dịch vụ. Tiếp theo, bài toán được mô hình hóa dưới dạng Markov 
+Decision Process (MDP), trong đó xác định không gian trạng thái, 
+tập hành động và hàm phần thưởng để tác nhân Reinforcement Learning 
+học chính sách phục hồi tối ưu cho kịch bản lỗi Pod Failure. Đây là 
+nền tảng cho quá trình triển khai và đánh giá mô hình trong các chương 
+tiếp theo.
+
 \section{Bài toán tự phục hồi trong Kubernetes}
 
 \noindent Trong môi trường microservices, Kubernetes cung cấp cơ chế \textit{tự phục hồi} để tự động phục hồi dịch vụ khi xảy ra sự cố Pod hoặc Node. Tuy nhiên, cơ chế mặc định chủ yếu dựa trên các quy tắc cố định và các controller truyền thống, do đó thường chưa tối ưu trong các tình huống tải động và lỗi kéo dài. Bài toán đặt ra là lựa chọn hành động phục hồi phù hợp theo từng trạng thái hệ thống, nhằm giảm lỗi dịch vụ, giảm độ trễ và rút ngắn thời gian phục hồi.
 
 \noindent Trong phạm vi đề tài, bài toán được mô hình hóa dưới dạng tiến trình quyết định Markov (Markov Decision Process - MDP), trong đó tác nhân học tăng cường quan sát trạng thái hệ thống và quyết định hành động phục hồi theo thời gian.
 
-\section{Thiết kế MDP cho các kịch bản lỗi}
+\section{Thiết kế MDP cho kịch bản lỗi}
 
 \noindent Một MDP được biểu diễn bởi bộ $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$, trong đó:
 \begin{itemize}
@@ -15,18 +26,14 @@
     \item $\gamma$: hệ số chiết khấu.
 \end{itemize}
 
-\noindent Phạm vi hiện tại tập trung vào kịch bản lỗi được mô hình hóa bằng MDP:
-\begin{itemize}
-    \item \textbf{MDP\_PPO\_POD\_KILL}: cho kịch bản \texttt{chaos-pod-kill-product}.
-    %\item \textbf{MDP\_PPO\_NETWORK\_DELAY}: cho kịch bản \texttt{chaos-network-delay-api-gateway}.
-\end{itemize}
+% \noindent Phạm vi hiện tại tập trung vào kịch bản lỗi được mô hình hóa bằng MDP:
+% \begin{itemize}
+%     \item \textbf{MDP\_PPO\_POD\_KILL}: cho kịch bản \texttt{chaos-pod-kill-product}.
+%     %\item \textbf{MDP\_PPO\_NETWORK\_DELAY}: cho kịch bản \texttt{chaos-network-delay-api-gateway}.
+% \end{itemize}
 
-\subsection{Kịch bản Pod Failure}
-
-\noindent Kịch bản Pod Failure được mô hình hóa bằng \textbf{MDP\_PPO\_POD\_KILL}.
-\noindent\textbf{Trạng thái.}
-
-\noindent Với kịch bản \texttt{pod\_kill}, trạng thái được xây dựng từ \texttt{combined-report.csv}. 
+\noindent Kịch bản Pod Failure được mô hình hóa bằng \textbf{MDP\_PPO\_POD\_KILL}. 
+Với kịch bản \texttt{pod\_kill}, trạng thái được xây dựng từ \texttt{combined-report.csv}. 
 
 \noindent \textbf{Trạng thái lõi và trạng thái suy diễn (dùng trực tiếp từ CSV hiện có).}
 \begin{center}

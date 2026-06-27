@@ -1,8 +1,113 @@
+\DeclareAcronym{ai}{
+  short=AI,
+  long=Artificial Intelligence,
+}
 \DeclareAcronym{ml}{
   short=ML,
   long=Machine Learning,
 }
-\DeclareAcronym{ai}{
-  short=AI,
-  long=Artifial Intelligence,
+\DeclareAcronym{rl}{
+  short=RL,
+  long=Reinforcement Learning,
+}
+\DeclareAcronym{mdp}{
+  short=MDP,
+  long=Markov Decision Process,
+}
+\DeclareAcronym{dqn}{
+  short=DQN,
+  long=Deep Q-Network,
+}
+\DeclareAcronym{a2c}{
+  short=A2C,
+  long=Advantage Actor-Critic,
+}
+\DeclareAcronym{ppo}{
+  short=PPO,
+  long=Proximal Policy Optimization,
+}
+\DeclareAcronym{sla}{
+  short=SLA,
+  long=Service Level Agreement,
+}
+\DeclareAcronym{qos}{
+  short=QoS,
+  long=Quality of Service,
+}
+\DeclareAcronym{vnf}{
+  short=VNF,
+  long=Virtual Network Function,
+}
+\DeclareAcronym{k8s}{
+  short=K8s,
+  long=Kubernetes,
+}
+\DeclareAcronym{api}{
+  short=API,
+  long=Application Programming Interface,
+}
+\DeclareAcronym{aws}{
+  short=AWS,
+  long=Amazon Web Services,
+}
+\DeclareAcronym{ec2}{
+  short=EC2,
+  long=Elastic Compute Cloud,
+}
+\DeclareAcronym{vpc}{
+  short=VPC,
+  long=Virtual Private Cloud,
+}
+\DeclareAcronym{rbac}{
+  short=RBAC,
+  long=Role-Based Access Control,
+}
+\DeclareAcronym{iac}{
+  short=IaC,
+  long=Infrastructure as Code,
+}
+\DeclareAcronym{yaml}{
+  short=YAML,
+  long=YAML Ain't Markup Language,
+}
+\DeclareAcronym{cpu}{
+  short=CPU,
+  long=Central Processing Unit,
+}
+\DeclareAcronym{ram}{
+  short=RAM,
+  long=Random Access Memory,
+}
+
+\newcommand{\PrintAbbrevTable}{
+  \begingroup
+  \footnotesize
+  \renewcommand{\arraystretch}{1.1}
+  \begin{center}
+  \begin{tabular}{|m{0.24\textwidth}|m{0.18\textwidth}|m{0.48\textwidth}|}
+    \hline
+    \textbf{Nhóm} & \textbf{Viết tắt} & \textbf{Diễn giải} \\ \hline
+    \multirow{7}{*}{\hspace{0.4em}\textbf{AI / RL}} & AI & Artificial Intelligence \\ \cline{2-3}
+     & ML & Machine Learning \\ \cline{2-3}
+     & RL & Reinforcement Learning \\ \cline{2-3}
+     & MDP & Markov Decision Process \\ \cline{2-3}
+     & DQN & Deep Q-Network \\ \cline{2-3}
+     & A2C & Advantage Actor-Critic \\ \cline{2-3}
+     & PPO & Proximal Policy Optimization \\ \hline
+    \multirow{4}{*}{\hspace{0.4em}\textbf{Hệ thống / Dịch vụ}} & SLA & Service Level Agreement \\ \cline{2-3}
+     & QoS & Quality of Service \\ \cline{2-3}
+     & API & Application Programming Interface \\ \cline{2-3}
+     & VNF & Virtual Network Function \\ \hline
+    \multirow{7}{*}{\hspace{0.4em}\textbf{Kubernetes / Cloud}} & K8s & Kubernetes \\ \cline{2-3}
+     & AWS & Amazon Web Services \\ \cline{2-3}
+     & EC2 & Elastic Compute Cloud \\ \cline{2-3}
+     & VPC & Virtual Private Cloud \\ \cline{2-3}
+     & RBAC & Role-Based Access Control \\ \cline{2-3}
+     & IaC & Infrastructure as Code \\ \cline{2-3}
+     & YAML & YAML Ain't Markup Language \\ \hline
+    \multirow{2}{*}{\hspace{0.4em}\textbf{Phần cứng}} & CPU & Central Processing Unit \\ \cline{2-3}
+     & RAM & Random Access Memory \\ \hline
+  \end{tabular}
+  \end{center}
+  \endgroup
 }

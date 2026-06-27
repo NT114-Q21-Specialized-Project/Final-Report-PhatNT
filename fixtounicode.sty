@@ -1,0 +1,18 @@
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{fixtounicode}[2026/06/26 Local fallback for MiKTeX builds]
+
+\RequirePackage{iftex}
+
+\ifPDFTeX
+  \InputIfFileExists{glyphtounicode.tex}{}{}
+  \pdfgentounicode=1
+\fi
+
+\ExplSyntaxOn
+\cs_if_exist:NF \fixtounicode_tounicode:nNN
+  {
+    \cs_new_protected:Npn \fixtounicode_tounicode:nNN #1#2#3 { }
+  }
+\ExplSyntaxOff
+
+\endinput

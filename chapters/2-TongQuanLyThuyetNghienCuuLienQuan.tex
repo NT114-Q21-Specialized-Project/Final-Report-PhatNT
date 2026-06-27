@@ -1,4 +1,14 @@
-
+Chương này trình bày nền tảng lý thuyết phục vụ cho việc xây dựng 
+hệ thống tự phục hồi ứng dụng trên Kubernetes bằng Reinforcement 
+Learning. Nội dung tập trung vào kiến trúc Kubernetes và 
+cơ chế tự động điều phối container, các nguyên lý của Reinforcement 
+Learning trong bài toán ra quyết định tuần tự, phương pháp Chaos 
+Engineering để tạo kịch bản lỗi và thu thập dữ liệu huấn luyện. 
+Bên cạnh đó, chương cũng giới thiệu các công cụ được sử dụng trong hệ thống như 
+Prometheus, Grafana, Chaos Mesh và Kubernetes API để giám sát, thu thập 
+trạng thái cụm và thực thi hành động tự phục hồi. 
+Các nền tảng lý thuyết này là cơ sở cho việc thiết kế, triển khai và 
+đánh giá mô hình RL trong các chương tiếp theo.
 \section{Microservices}
 
 \subsection{Giới thiệu}
@@ -17,7 +27,11 @@ Trong đồ án, microservices là mô hình ứng dụng được triển khai 
 
 \subsection{Giới thiệu}
 
-Kubernetes là nền tảng điều phối container mã nguồn mở, được sử dụng rộng rãi để triển khai và vận hành các hệ thống microservices. Nền tảng này hỗ trợ tự động hóa nhiều chức năng quan trọng như triển khai dịch vụ, mở rộng tài nguyên, cân bằng tải và phục hồi khi xảy ra lỗi.
+Kubernetes là nền tảng điều phối container mã nguồn mở, được sử dụng 
+rộng rãi để triển khai và vận hành các hệ thống microservices. Nền 
+tảng này hỗ trợ tự động hóa nhiều chức năng quan trọng như triển khai 
+dịch vụ, mở rộng tài nguyên, cân bằng tải và tự động phục hồi khi xảy 
+ra lỗi.
 
 Trong Kubernetes, đơn vị triển khai cơ bản là \textit{Pod}. Các thành phần như \textit{Deployment}, \textit{Service} và \textit{ReplicaSet} phối hợp để duy trì trạng thái mong muốn của hệ thống, từ đó hình thành cơ chế \textit{self-healing} như tự khởi động lại Pod lỗi hoặc tạo Pod thay thế khi sự cố xảy ra.
 

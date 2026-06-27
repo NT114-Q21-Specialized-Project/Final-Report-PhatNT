@@ -365,10 +365,12 @@ sorting=none, bibencoding=utf8, natbib=true, maxbibnames=99]{biblatex}
         \listoffigures
     \fi
     
-    \newpage
+    \clearpage
     \phantomsection
     \addcontentsline{toc}{chapter}{\abbrevname}
-    \printacronyms[name=\abbrevname]
+    \chapter*{\abbrevname}
+    \markboth{\abbrevname}{\abbrevname}
+    \PrintAbbrevTable
     
     \cleardoublepage
     \pagenumbering{arabic}

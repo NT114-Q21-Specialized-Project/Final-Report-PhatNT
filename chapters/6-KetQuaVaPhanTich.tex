@@ -1,15 +1,23 @@
+Chương này trình bày kết quả huấn luyện và đánh giá các mô hình Reinforcement Learning được đề xuất trong bài toán tự phục hồi ứng dụng trên nền tảng Kubernetes. Ba thuật toán DQN, A2C và PPO được huấn luyện trên cùng môi trường mô phỏng và cùng tập dữ liệu trạng thái được xây dựng từ các kịch bản Pod Failure. Mục tiêu của quá trình thực nghiệm là đánh giá khả năng học chính sách phục hồi, mức độ hội tụ của từng thuật toán cũng như hiệu quả khi triển khai trên hệ thống thực tế.
 
+Bên cạnh việc phân tích các chỉ số trong quá trình huấn luyện như phần thưởng tích lũy, giá trị hàm mất mát và xu hướng hội tụ, chương này còn đánh giá khả năng vận hành của các mô hình sau khi triển khai lên cụm Kubernetes. Các kết quả được so sánh dựa trên khả năng lựa chọn hành động phục hồi, tốc độ thích nghi với sự thay đổi của môi trường và hiệu quả khôi phục dịch vụ trong các kịch bản Pod Failure. Từ đó, đề tài đưa ra nhận xét về ưu điểm, hạn chế và mức độ phù hợp của từng thuật toán đối với bài toán tự phục hồi trên Kubernetes.
 \section{Kết quả huấn luyện mô hình}
 
-Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện được lấy từ 6 quỹ đạo artifact của kịch bản \texttt{chaos-pod-kill-product}. Các quỹ đạo này đã được ánh xạ về không gian trạng thái MDP và đưa vào môi trường \texttt{ArtifactReplayEnv} để huấn luyện tác nhân. Kết quả được lưu theo từng run, bao gồm mô hình, metadata và các biểu đồ chẩn đoán quá trình học.
+Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện được lấy từ các quỹ đạo artifact của kịch bản 
+\texttt{chaos-pod-kill-product}. Các quỹ đạo này đã được ánh xạ về không gian trạng thái MDP và đưa 
+vào môi trường \texttt{ArtifactReplayEnv} để huấn luyện tác nhân. Kết quả được lưu theo từng run, bao gồm 
+mô hình, metadata và các biểu đồ chẩn đoán quá trình học.
 
 \subsection{DQN}
 
-Đối với DQN, mô hình được huấn luyện trong 400\,000 bước thời gian với môi trường động học \texttt{hybrid\_controlled}, hệ số nhiễu \texttt{noise\_scale = 0.70} và 40 episode đánh giá sau huấn luyện. Các siêu tham số chính của run này gồm \textit{learning rate} $= 5\times10^{-5}$, \textit{buffer size} = 200\,000, \textit{batch size} = 256, \textit{target update interval} = 2\,000 và cơ chế thăm dò \textit{epsilon-greedy} giảm từ 1.0 xuống 0.05.
+Đối với DQN, mô hình được huấn luyện trong 400\,000 bước thời gian với môi trường động học 
+\texttt{hybrid\_controlled}, hệ số nhiễu \texttt{noise\_scale = 0.70} và 40 episode đánh giá sau huấn luyện. 
+Các siêu tham số chính của run này gồm \textit{learning rate} $= 5\times10^{-5}$, \textit{buffer size} = 200\,000, 
+\textit{batch size} = 256, \textit{target update interval} = 2\,000 và cơ chế thăm dò \textit{epsilon-greedy} giảm từ 1.0 xuống 0.05.
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.95\textwidth]{graphics/chapter-6/train_DQN/training_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_DQN/training_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biểu đồ hội tụ theo phần thưởng và độ dài episode của DQN}
     \label{fig:dqn-training-convergence}
@@ -19,7 +27,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/chapter-6/train_DQN/loss_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_DQN/loss_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biến thiên hàm mất mát (\textit{training loss}) của DQN}
     \label{fig:dqn-loss}
@@ -29,7 +37,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/chapter-6/train_DQN/epsilon_curve.png}
+    \includegraphics[width=0.95\textwidth]{graphics/chapter-6/train_DQN/epsilon_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Lịch trình suy giảm hệ số thăm dò \textit{epsilon} của DQN}
     \label{fig:dqn-epsilon}
@@ -39,7 +47,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/train_DQN/dqn_diagnostics.png}
+    \includegraphics[width=0.95\textwidth]{graphics/chapter-6/train_DQN/dqn_diagnostics.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biểu đồ chẩn đoán quá trình huấn luyện DQN tổng hợp}
     \label{fig:dqn-diagnostics-pod-failure}
@@ -49,7 +57,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/train_DQN/evaluation_summary.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_DQN/evaluation_summary.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{So sánh kết quả đánh giá DQN với baseline}
     \label{fig:dqn-evaluation-summary}
@@ -73,7 +81,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/chapter-6/train_A2C/policy_loss_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_A2C/policy_loss_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biến thiên \textit{policy loss} trong quá trình huấn luyện A2C}
     \label{fig:a2c-policy-loss}
@@ -83,7 +91,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/chapter-6/train_A2C/value_loss_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_A2C/value_loss_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biến thiên \textit{value loss} của A2C}
     \label{fig:a2c-value-loss}
@@ -218,7 +226,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.9\textwidth]{graphics/chapter-6/train_PPO/learning_rate_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_PPO/learning_rate_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biến thiên tốc độ học trong quá trình huấn luyện PPO}
     \label{fig:ppo-learning-rate}
@@ -228,7 +236,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/train_PPO/loss_curve.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_PPO/loss_curve.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biểu đồ tổng hợp các hàm mất mát chính của PPO}
     \label{fig:ppo-loss-summary}
@@ -258,7 +266,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/train_PPO/evaluation_summary.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/train_PPO/evaluation_summary.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{So sánh kết quả đánh giá PPO với baseline}
     \label{fig:ppo-evaluation-summary}
@@ -267,23 +275,23 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 \noindent Tổng hợp các kết quả trên, PPO cho thấy ba đặc điểm tích cực trên kịch bản \textit{pod failure}: (i) đường phần thưởng hội tụ theo xu hướng tăng, (ii) các đại lượng tối ưu hóa như \textit{KL}, \textit{clip fraction} và các hàm mất mát được giữ trong miền ổn định, và (iii) kết quả đánh giá cuối cùng tốt hơn baseline cả về \textit{success rate} lẫn phần thưởng trung bình. Vì vậy, trong phạm vi thực nghiệm hiện tại, PPO là một ứng viên phù hợp cho bài toán tự phục hồi Kubernetes dựa trên học tăng cường.
 
 
-\section{So sánh kết quả đánh giá offline giữa các thuật toán}
+\section{Kết quả triển khai và đánh giá các mô hình}
 
-\noindent Sau khi hoàn thành giai đoạn huấn luyện riêng cho từng mô hình, nhóm tiến hành đánh giá offline trên cùng tập episode của kịch bản \textit{pod failure} để đối chiếu trực tiếp giữa DQN, A2C, PPO và baseline. Mục tiêu của phần này là xem xét không chỉ tỷ lệ phục hồi thành công, mà còn cả chất lượng hành vi can thiệp, độ dài chuỗi phục hồi và tác động của từng chính sách lên các chỉ số hệ thống quan trọng.
+\noindent Sau khi hoàn thành giai đoạn huấn luyện riêng cho từng mô hình, tác giả tiến hành đánh giá trên cùng tập episode của kịch bản \textit{pod failure} để đối chiếu trực tiếp giữa DQN, A2C, PPO và baseline. Mục tiêu của phần này là xem xét không chỉ tỷ lệ phục hồi thành công, mà còn cả chất lượng hành vi can thiệp, độ dài chuỗi phục hồi và tác động của từng chính sách lên các chỉ số hệ thống quan trọng.
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/compare/evaluation_summary.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/compare/evaluation_summary.png}
     \captionsetup{hypcap=false}
-    \captionof{figure}{Kết quả đánh giá offline tổng hợp của các thuật toán}
+    \captionof{figure}{Kết quả đánh giá tổng hợp của các thuật toán}
     \label{fig:compare-evaluation-summary}
 \end{minipage}
 
-\noindent Hình \ref{fig:compare-evaluation-summary} trình bày hai đại lượng tổng quát nhất của pha đánh giá offline là \textit{success rate} và \textit{average reward}. Có thể thấy PPO đạt kết quả nổi bật nhất với tỷ lệ thành công xấp xỉ 0.97 và phần thưởng trung bình trên 6.0. Trong khi đó, DQN và A2C cùng đạt mức \textit{success rate} khoảng 0.85, đều cao hơn baseline khoảng 0.82. Xét theo phần thưởng trung bình, DQN đạt khoảng 3.2, baseline khoảng 2.6 và A2C khoảng 2.5. Kết quả này cho thấy PPO không chỉ phục hồi thành công với tần suất cao hơn mà còn tạo ra chuỗi hành động có chất lượng tốt hơn theo đúng hàm thưởng đã thiết kế.
+\noindent Hình \ref{fig:compare-evaluation-summary} trình bày hai đại lượng tổng quát nhất của pha đánh giá là \textit{success rate} và \textit{average reward}. Có thể thấy PPO đạt kết quả nổi bật nhất với tỷ lệ thành công xấp xỉ 0.97 và phần thưởng trung bình trên 6.0. Trong khi đó, DQN và A2C cùng đạt mức \textit{success rate} khoảng 0.85, đều cao hơn baseline khoảng 0.82. Xét theo phần thưởng trung bình, DQN đạt khoảng 3.2, baseline khoảng 2.6 và A2C khoảng 2.5. Kết quả này cho thấy PPO không chỉ phục hồi thành công với tần suất cao hơn mà còn tạo ra chuỗi hành động có chất lượng tốt hơn theo đúng hàm thưởng đã thiết kế.
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.95\textwidth]{graphics/chapter-6/compare/episode_curves.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/compare/episode_curves.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Biến thiên phần thưởng và độ dài episode trong các tập đánh giá}
     \label{fig:compare-episode-curves}
@@ -293,7 +301,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.92\textwidth]{graphics/chapter-6/compare/action_distribution.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/compare/action_distribution.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Phân phối các hành động can thiệp của các thuật toán}
     \label{fig:compare-action-distribution}
@@ -303,7 +311,7 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \begin{minipage}{\textwidth}
     \centering
-    \includegraphics[width=0.95\textwidth]{graphics/chapter-6/compare/system_metrics_summary.png}
+    \includegraphics[width=1.0\textwidth]{graphics/chapter-6/compare/system_metrics_summary.png}
     \captionsetup{hypcap=false}
     \captionof{figure}{Tổng hợp các chỉ số hệ thống và trạng thái theo từng chính sách}
     \label{fig:compare-system-metrics}
@@ -311,4 +319,4 @@ Trong phạm vi thực nghiệm hiện tại, dữ liệu huấn luyện đượ
 
 \noindent Hình \ref{fig:compare-system-metrics} tổng hợp các chỉ số hệ thống chính dưới dạng giá trị trung bình và phân vị 95 cho bốn chính sách. Với nhóm chỉ số sức khỏe dịch vụ, PPO cho kết quả tốt nhất hoặc gần tốt nhất ở cả \textit{error rate}, \textit{p95\_norm} và \textit{p99\_norm}; đặc biệt, độ trễ ở các phân vị cao của PPO thấp hơn rõ rệt so với DQN và A2C. DQN có mức \textit{error rate} trung bình thấp hơn baseline nhưng phần đuôi độ trễ vẫn còn cao, còn A2C cho thấy \textit{p95\_norm} và \textit{p99\_norm} biến động lớn hơn. Ở nhóm chỉ số trạng thái như \textit{CPU norm} và \textit{Memory norm}, chênh lệch giữa các chính sách là không lớn, cho thấy khác biệt hiệu năng chủ yếu đến từ chất lượng ra quyết định phục hồi hơn là do một chính sách tiêu tốn tài nguyên vượt trội so với phần còn lại.
 
-\noindent Tổng hợp bốn góc nhìn trên, có thể rút ra ba nhận xét chính. Thứ nhất, PPO là thuật toán cho kết quả tốt nhất về tổng thể khi đồng thời đạt \textit{success rate} cao nhất, phần thưởng trung bình cao nhất và các chỉ số sức khỏe dịch vụ thấp nhất. Thứ hai, DQN vẫn cho kết quả tốt hơn baseline ở cả khả năng phục hồi lẫn reward, nhưng hành vi can thiệp còn thận trọng quá mức ở \texttt{restart\_pod} và đôi khi lệch sang \texttt{scale\_up}. Thứ ba, A2C có khả năng phục hồi thành công ở mức khá nhưng độ ổn định giữa các episode chưa đồng đều bằng PPO. Vì vậy, trong phạm vi đánh giá offline của đồ án, PPO là mô hình phù hợp nhất để tiếp tục xem xét cho bước triển khai và điều khiển self-healing trên hệ thống Kubernetes.
+\noindent Tổng hợp bốn góc nhìn trên, có thể rút ra ba nhận xét chính. Thứ nhất, PPO là thuật toán cho kết quả tốt nhất về tổng thể khi đồng thời đạt \textit{success rate} cao nhất, phần thưởng trung bình cao nhất và các chỉ số sức khỏe dịch vụ thấp nhất. Thứ hai, DQN vẫn cho kết quả tốt hơn baseline ở cả khả năng phục hồi lẫn reward, nhưng hành vi can thiệp còn thận trọng quá mức ở \texttt{restart\_pod} và đôi khi lệch sang \texttt{scale\_up}. Thứ ba, A2C có khả năng phục hồi thành công ở mức khá nhưng độ ổn định giữa các episode chưa đồng đều bằng PPO. Vì vậy, trong phạm vi đánh giá của đồ án, PPO là mô hình phù hợp nhất để tiếp tục xem xét cho bước triển khai và điều khiển self-healing trên hệ thống Kubernetes.
